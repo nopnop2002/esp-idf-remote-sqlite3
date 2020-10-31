@@ -172,6 +172,12 @@ void wifi_init_sta()
 	ESP_LOGI(TAG, "connect to ap SSID:%s", EXAMPLE_ESP_WIFI_SSID);
 }
 
+void JSON_Record(const cJSON * const array) {
+    char *id = cJSON_GetObjectItem(array,"id")->valuestring;
+    char *name = cJSON_GetObjectItem(array,"name")->valuestring;
+    char *gender = cJSON_GetObjectItem(array,"gender")->valuestring;
+    ESP_LOGI(TAG, "%s\t%s\t%s", id, name, gender);
+}
 
 char *JSON_Types(int type) {
 	if (type == cJSON_Invalid) return ("cJSON_Invalid");
@@ -187,6 +193,23 @@ char *JSON_Types(int type) {
 }
 
 void JSON_Parse(const cJSON * const root) {
+	ESP_LOGI(TAG, "-----------------------------------------");
+	ESP_LOGD(TAG, "root->type=%s", JSON_Types(root->type));
+	if (cJSON_IsArray(root)) {
+		ESP_LOGD(TAG, "root->type is Array");
+		int root_array_size = cJSON_GetArraySize(root); 
+		for (int i=0;i<root_array_size;i++) {
+			cJSON *record = cJSON_GetArrayItem(root,i);
+			JSON_Record(record);
+		}
+	} else {
+		ESP_LOGD(TAG, "root->type is Object");
+		JSON_Record(root);
+	}
+	ESP_LOGI(TAG, "-----------------------------------------");
+}
+
+void JSON_Analyze(const cJSON * const root) {
 	//ESP_LOGI(TAG, "root->type=%s", JSON_Types(root->type));
 	cJSON *current_element = NULL;
 	//ESP_LOGI(TAG, "root->child=%p", root->child);
@@ -215,10 +238,10 @@ void JSON_Parse(const cJSON * const root) {
 			ESP_LOGI(TAG, "%s", valuestring);
 		} else if (cJSON_IsArray(current_element)) {
 			ESP_LOGD(TAG, "Array");
-			JSON_Parse(current_element);
+			JSON_Analyze(current_element);
 		} else if (cJSON_IsObject(current_element)) {
 			ESP_LOGD(TAG, "Object");
-			JSON_Parse(current_element);
+			JSON_Analyze(current_element);
 		} else if (cJSON_IsRaw(current_element)) {
 			ESP_LOGI(TAG, "Raw(Not support)");
 		}
@@ -309,13 +332,6 @@ esp_err_t sqlite3_client_post(char * path, char * name, int gender)
 		ESP_LOGD(TAG, "local_response_buffer=%d",  strlen(local_response_buffer));
 		//ESP_LOG_BUFFER_HEX(TAG, local_response_buffer, strlen(local_response_buffer));
 		ESP_LOGI(TAG, "%s",  local_response_buffer);
-
-#if CONFIG_JSON_PARSE
-		ESP_LOGI(TAG, "Deserialize.....");
-		cJSON *root = cJSON_Parse(local_response_buffer);
-		JSON_Parse(root);
-		cJSON_Delete(root);
-#endif
 		ret = ESP_OK;
 		
 	} else {
@@ -361,13 +377,6 @@ esp_err_t sqlite3_client_put(char * path, char * name, int gender)
 		ESP_LOGD(TAG, "local_response_buffer=%d",  strlen(local_response_buffer));
 		//ESP_LOG_BUFFER_HEX(TAG, local_response_buffer, strlen(local_response_buffer));
 		ESP_LOGI(TAG, "%s",  local_response_buffer);
-
-#if CONFIG_JSON_PARSE
-		ESP_LOGI(TAG, "Deserialize.....");
-		cJSON *root = cJSON_Parse(local_response_buffer);
-		JSON_Parse(root);
-		cJSON_Delete(root);
-#endif
 		ret = ESP_OK;
 	} else {
 		ESP_LOGE(TAG, "HTTP PUT request failed: %s", esp_err_to_name(err));
@@ -409,13 +418,6 @@ esp_err_t sqlite3_client_delete(char * path)
 		ESP_LOGD(TAG, "local_response_buffer=%d",  strlen(local_response_buffer));
 		//ESP_LOG_BUFFER_HEX(TAG, local_response_buffer, strlen(local_response_buffer));
 		ESP_LOGI(TAG, "%s",  local_response_buffer);
-
-#if CONFIG_JSON_PARSE
-		ESP_LOGI(TAG, "Deserialize.....");
-		cJSON *root = cJSON_Parse(local_response_buffer);
-		JSON_Parse(root);
-		cJSON_Delete(root);
-#endif
 		ret = ESP_OK;
 	} else {
 		ESP_LOGE(TAG, "HTTP DELETE request failed: %s", esp_err_to_name(err));
