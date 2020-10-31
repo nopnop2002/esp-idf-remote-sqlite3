@@ -223,7 +223,7 @@ I (83577) SQLITE: {
 }
 ```
 
-## Update new record
+## Update record
 ```
 I (100747) SQLITE: {
     "id": "5",
@@ -232,7 +232,7 @@ I (100747) SQLITE: {
 }
 ```
 
-## Delete new record
+## Delete record
 ```
 I (140287) SQLITE: [
     {
