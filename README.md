@@ -186,7 +186,8 @@ I (4557) SQLITE: [
         "name": "Bjorn",
         "gender": "2"
     }
-]```
+]
+```
 
 ## Read by ID
 ```
