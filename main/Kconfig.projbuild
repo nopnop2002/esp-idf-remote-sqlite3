@@ -30,10 +30,4 @@ menu "Application Configuration"
 		help
 			HTTP server port to use.
 
-	config JSON_PRINT
-		bool "Enable JSON Print to STDOUT"
-		default y
-		help
-			Enable JSON Print to STDOUT.
-
 endmenu

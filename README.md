@@ -162,104 +162,56 @@ Maximum number of retries when connecting to wifi.
 IP or DNS of your WEB Server.
 - CONFIG_ESP_WEB_SERVER_PORT   
 Port number of your WEB Server.
-- CONFIG_JSON_PRINT   
-Enable JSON print to STDOUT.
 
 ![menuconfig-1](https://user-images.githubusercontent.com/6020549/97775496-79623d80-1ba4-11eb-99cc-1b309aa1689b.jpg)
-![menuconfig-2](https://user-images.githubusercontent.com/6020549/160273019-f12807f7-2c9b-4dd4-9b4b-683bf5ba60d7.jpg)
+![menuconfig-2](https://user-images.githubusercontent.com/6020549/160274237-2b87a981-f8e8-481b-9d01-77675ea58306.jpg)
 
 ## Read all data
 ```
-I (4557) SQLITE: [
-    {
-        "id": "1",
-        "name": "Luis",
-        "gender": "1"
-    },
-    {
-        "id": "2",
-        "name": "Leonie",
-        "gender": "1"
-    },
-    {
-        "id": "3",
-        "name": "Francois",
-        "gender": "2"
-    },
-    {
-        "id": "4",
-        "name": "Bjorn",
-        "gender": "2"
-    }
-]
+I (3241) SQLITE: -----------------------------------------
+I (3251) SQLITE: 1      Luis    1
+I (3251) SQLITE: 2      Leonie  1
+I (3251) SQLITE: 3      Francois        2
+I (3261) SQLITE: 4      Bjorn   2
+I (3261) SQLITE: -----------------------------------------
 ```
 
 ## Read by ID
 ```
-I (36197) SQLITE: {
-    "id": "3",
-    "name": "Francois",
-    "gender": "2"
-}
+I (4331) SQLITE: -----------------------------------------
+I (4331) SQLITE: 3      Francois        2
+I (4331) SQLITE: -----------------------------------------
 ```
 
 ## Read by gender
 ```
-I (65607) SQLITE: [
-    {
-        "id": "3",
-        "name": "Francois",
-        "gender": "2"
-    },
-    {
-        "id": "4",
-        "name": "Bjorn",
-        "gender": "2"
-    }
-]
+I (5141) SQLITE: -----------------------------------------
+I (5141) SQLITE: 3      Francois        2
+I (5141) SQLITE: 4      Bjorn   2
+I (5151) SQLITE: -----------------------------------------
 ```
 
 ## Create new record
 ```
-I (83577) SQLITE: {
-    "id": "5",
-    "name": "Tom",
-    "gender": "1"
-}
+I (5891) SQLITE: -----------------------------------------
+I (5901) SQLITE: 5      Tom     1
+I (5901) SQLITE: -----------------------------------------
 ```
 
 ## Update record
 ```
-I (100747) SQLITE: {
-    "id": "5",
-    "name": "Petty",
-    "gender": "2"
-}
+I (18131) SQLITE: -----------------------------------------
+I (18141) SQLITE: 5     Petty   2
+I (18141) SQLITE: -----------------------------------------
 ```
 
 ## Delete record
 ```
-I (140287) SQLITE: [
-    {
-        "id": "1",
-        "name": "Luis",
-        "gender": "1"
-    },
-    {
-        "id": "2",
-        "name": "Leonie",
-        "gender": "1"
-    },
-    {
-        "id": "3",
-        "name": "Francois",
-        "gender": "2"
-    },
-    {
-        "id": "4",
-        "name": "Bjorn",
-        "gender": "2"
-    }
-]
+I (31881) SQLITE: -----------------------------------------
+I (31881) SQLITE: 1     Luis    1
+I (31881) SQLITE: 2     Leonie  1
+I (31891) SQLITE: 3     Francois        2
+I (31891) SQLITE: 4     Bjorn   2
+I (31891) SQLITE: -----------------------------------------
 ```
 

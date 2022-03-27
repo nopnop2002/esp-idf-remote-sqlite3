@@ -106,7 +106,7 @@ esp_err_t _http_event_handler(esp_http_client_event_t *evt)
 			output_len = 0;
 			break;
 		case HTTP_EVENT_DISCONNECTED:
-			ESP_LOGI(TAG, "HTTP_EVENT_DISCONNECTED");
+			ESP_LOGD(TAG, "HTTP_EVENT_DISCONNECTED");
 #if 0
 			int mbedtls_err = 0;
 			esp_err_t err = esp_tls_get_and_clear_last_error(evt->data, &mbedtls_err, NULL);
@@ -289,12 +289,10 @@ esp_err_t sqlite3_client_get(char * path)
 		ESP_LOGD(TAG, "local_response_buffer=%d", strlen(local_response_buffer));
 		ESP_LOGD(TAG, "%s", local_response_buffer);
 
-#if CONFIG_JSON_PRINT
 		ESP_LOGI(TAG, "Deserialize.....");
 		cJSON *root = cJSON_Parse(local_response_buffer);
 		JSON_Print(root);
 		cJSON_Delete(root);
-#endif
 		ret = ESP_OK;
 	} else {
 		ESP_LOGE(TAG, "HTTP GET request failed: %s", esp_err_to_name(err));
@@ -563,6 +561,7 @@ void http_task(void *pvParameters)
 		sqlite3_client_delete(path); 
 		sqlite3_client_get("customers"); 
 	}
+	ESP_LOGI(TAG, "All Finish!!");
 
 	while(1) {
 		vTaskDelay(1);
