@@ -162,11 +162,11 @@ Maximum number of retries when connecting to wifi.
 IP or DNS of your WEB Server.
 - CONFIG_ESP_WEB_SERVER_PORT   
 Port number of your WEB Server.
-- CONFIG_JSON_PARSE   
-Enable JSON parse.
+- CONFIG_JSON_PRINT   
+Enable JSON print to STDOUT.
 
 ![menuconfig-1](https://user-images.githubusercontent.com/6020549/97775496-79623d80-1ba4-11eb-99cc-1b309aa1689b.jpg)
-![menuconfig-2](https://user-images.githubusercontent.com/6020549/97775498-7bc49780-1ba4-11eb-9d32-1984978f9b8b.jpg)
+![menuconfig-2](https://user-images.githubusercontent.com/6020549/160273019-f12807f7-2c9b-4dd4-9b4b-683bf5ba60d7.jpg)
 
 ## Read all data
 ```

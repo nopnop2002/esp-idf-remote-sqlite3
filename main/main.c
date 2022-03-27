@@ -289,7 +289,7 @@ esp_err_t sqlite3_client_get(char * path)
 		ESP_LOGD(TAG, "local_response_buffer=%d", strlen(local_response_buffer));
 		ESP_LOGD(TAG, "%s", local_response_buffer);
 
-#if CONFIG_JSON_PARSE
+#if CONFIG_JSON_PRINT
 		ESP_LOGI(TAG, "Deserialize.....");
 		cJSON *root = cJSON_Parse(local_response_buffer);
 		JSON_Print(root);
@@ -498,7 +498,6 @@ int sqlite3_client_maxid(char * path)
 			ESP_LOGD(TAG, "id=%s",id);
 			rcode = atoi(id);
 		}
-		//JSON_Parse(root);
 		cJSON_Delete(root);
 	} else {
 		ESP_LOGE(TAG, "HTTP GET request failed: %s", esp_err_to_name(err));
