@@ -1,11 +1,16 @@
 # esp-idf-remote-sqlite3
-Remote-Sqlite access example for esp-idf.   
-You can access Sqlite3 on the server over the network.   
+Remote sqlite3 access example for esp-idf.   
+You can access sqlite3 on the server over the network.   
 Use [this](https://github.com/alixaxel/ArrestDB) as PHP script of WEB server.   
 
 ![remote-sqlite3](https://user-images.githubusercontent.com/6020549/97775795-c21af600-1ba6-11eb-9d02-04dcaca058c7.jpg)
 
 # Server Side
+
+## Install sqlite3   
+```
+$ sudo apt install sqlite3
+```
 
 ## Create sqlite3 database   
 Run the following script in any directory.   
@@ -13,7 +18,7 @@ Run the following script in any directory.
 #!/bin/bash
 #set -x
 
-if [ ! -x $(which sqlite3) ];then
+if [ -z $(which sqlite3) ];then
   echo "sqlite3 not found."
   exit -1
 fi
@@ -54,7 +59,8 @@ ${sqlite} "select * from customers;"
 
 ## Install ArrestDB
 ```
-$ git close https://github.com/alixaxel/ArrestDB
+$ cd $HOME
+$ git clone https://github.com/alixaxel/ArrestDB
 $ cd ArrestDB
 $ vi index.php
 
@@ -62,15 +68,15 @@ Set the full path of the database in the following line.
 
 $dsn = '';
 
-For example, if the database is //home/nop/example.db, it will be as follows.
+For example, if the database is /home/nop/esp-idf-remote-sqlite3/sqlite/example.db, it will be as follows.
 
-$dsn = 'sqlite:///home/nop/example.db';
+$dsn = 'sqlite:///home/nop/esp-idf-remote-sqlite3/sqlite/example.db';
 
 ```
 
 ## Install PHP
 ```
-
+$ cd $HOME
 $ sudo apt install php
 
 $ php --version
@@ -141,8 +147,8 @@ esp-idf ver4.1 or later.
 ```
 git clone https://github.com/nopnop2002/esp-idf-remote-sqlite3
 cd esp-idf-remote-sqlite3/
-make menuconfig
-make flash monitor
+idf.py menuconfig
+idy.py flash monitor
 ```
 
 You have to set this config value with menuconfig.   
@@ -160,7 +166,6 @@ Port number of your WEB Server.
 Enable JSON parse.
 
 ![menuconfig-1](https://user-images.githubusercontent.com/6020549/97775496-79623d80-1ba4-11eb-99cc-1b309aa1689b.jpg)
-
 ![menuconfig-2](https://user-images.githubusercontent.com/6020549/97775498-7bc49780-1ba4-11eb-9d32-1984978f9b8b.jpg)
 
 ## Read all data

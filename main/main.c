@@ -24,14 +24,12 @@
 
 /* The examples use WiFi configuration that you can set via project configuration menu
 
-   If you'd rather not, just change the below entries to strings with
-   the config you want - ie #define EXAMPLE_WIFI_SSID "mywifissid"
+	 If you'd rather not, just change the below entries to strings with
+	 the config you want - ie #define EXAMPLE_WIFI_SSID "mywifissid"
 */
 #define EXAMPLE_ESP_WIFI_SSID			CONFIG_ESP_WIFI_SSID
 #define EXAMPLE_ESP_WIFI_PASS			CONFIG_ESP_WIFI_PASSWORD
 #define EXAMPLE_ESP_MAXIMUM_RETRY		CONFIG_ESP_MAXIMUM_RETRY
-#define EXAMPLE_ESP_WEB_SERVER_IP		CONFIG_ESP_WEB_SERVER_IP
-#define EXAMPLE_ESP_WEB_SERVER_PORT		CONFIG_ESP_WEB_SERVER_PORT
 
 /* FreeRTOS event group to signal when we are connected*/
 static EventGroupHandle_t wifi_event_group;
@@ -71,21 +69,31 @@ esp_err_t _http_event_handler(esp_http_client_event_t *evt)
 			ESP_LOGD(TAG, "HTTP_EVENT_ON_DATA, len=%d", evt->data_len);
 			ESP_LOGD(TAG, "HTTP_EVENT_ON_DATA, output_len=%d", output_len);
 			ESP_LOGD(TAG, "HTTP_EVENT_ON_DATA, content_length=%d", esp_http_client_get_content_length(evt->client));
-			// If user_data buffer is configured, copy the response into the buffer
-			if (evt->user_data) {
-				memcpy(evt->user_data + output_len, evt->data, evt->data_len);
-			} else {
-				if (output_buffer == NULL && esp_http_client_get_content_length(evt->client) > 0) {
-					output_buffer = (char *) malloc(esp_http_client_get_content_length(evt->client));
-					output_len = 0;
+#if 0
+			/*
+			 *	Check for chunked encoding is added as the URL for chunked encoding used in this example returns binary data.
+			 *	However, event handler can also be used in case chunked encoding is used.
+			 */
+			if (!esp_http_client_is_chunked_response(evt->client)) {
+#endif
+				// If user_data buffer is configured, copy the response into the buffer
+				if (evt->user_data) {
+					memcpy(evt->user_data + output_len, evt->data, evt->data_len);
+				} else {
 					if (output_buffer == NULL) {
-						ESP_LOGE(TAG, "Failed to allocate memory for output buffer");
-						return ESP_FAIL;
+						output_buffer = (char *) malloc(esp_http_client_get_content_length(evt->client));
+						output_len = 0;
+						if (output_buffer == NULL) {
+							ESP_LOGE(TAG, "Failed to allocate memory for output buffer");
+							return ESP_FAIL;
+						}
 					}
+					memcpy(output_buffer + output_len, evt->data, evt->data_len);
 				}
-				memcpy(output_buffer + output_len, evt->data, evt->data_len);
+				output_len += evt->data_len;
+#if 0
 			}
-			output_len += evt->data_len;
+#endif
 			break;
 		case HTTP_EVENT_ON_FINISH:
 			ESP_LOGD(TAG, "HTTP_EVENT_ON_FINISH");
@@ -98,17 +106,24 @@ esp_err_t _http_event_handler(esp_http_client_event_t *evt)
 			output_len = 0;
 			break;
 		case HTTP_EVENT_DISCONNECTED:
-			ESP_LOGD(TAG, "HTTP_EVENT_DISCONNECTED");
+			ESP_LOGI(TAG, "HTTP_EVENT_DISCONNECTED");
+#if 0
 			int mbedtls_err = 0;
 			esp_err_t err = esp_tls_get_and_clear_last_error(evt->data, &mbedtls_err, NULL);
+			ESP_LOGI(TAG, "esp_tls_get_and_clear_last_error=%d", err);
 			if (err != 0) {
 				if (output_buffer != NULL) {
 					free(output_buffer);
 					output_buffer = NULL;
 				}
 				output_len = 0;
-				ESP_LOGE(TAG, "Last esp error code: 0x%x", err);
-				ESP_LOGE(TAG, "Last mbedtls failure: 0x%x", mbedtls_err);
+				ESP_LOGI(TAG, "Last esp error code: 0x%x", err);
+				ESP_LOGI(TAG, "Last mbedtls failure: 0x%x", mbedtls_err);
+			}
+#endif
+			if (output_buffer != NULL) {
+				free(output_buffer);
+				output_buffer = NULL;
 			}
 			break;
 	}
@@ -141,13 +156,7 @@ void wifi_init_sta()
 {
 	wifi_event_group = xEventGroupCreate();
 
-#if 0
-	tcpip_adapter_init();
-
-	ESP_ERROR_CHECK(esp_event_loop_create_default());
-#endif
 	ESP_ERROR_CHECK(esp_netif_init());
-	
 	ESP_ERROR_CHECK(esp_event_loop_create_default());
 	esp_netif_create_default_wifi_sta();
 
@@ -173,10 +182,10 @@ void wifi_init_sta()
 }
 
 void JSON_Record(const cJSON * const array) {
-    char *id = cJSON_GetObjectItem(array,"id")->valuestring;
-    char *name = cJSON_GetObjectItem(array,"name")->valuestring;
-    char *gender = cJSON_GetObjectItem(array,"gender")->valuestring;
-    ESP_LOGI(TAG, "%s\t%s\t%s", id, name, gender);
+		char *id = cJSON_GetObjectItem(array,"id")->valuestring;
+		char *name = cJSON_GetObjectItem(array,"name")->valuestring;
+		char *gender = cJSON_GetObjectItem(array,"gender")->valuestring;
+		ESP_LOGI(TAG, "%s\t%s\t%s", id, name, gender);
 }
 
 char *JSON_Types(int type) {
@@ -192,7 +201,7 @@ char *JSON_Types(int type) {
 	return NULL;
 }
 
-void JSON_Parse(const cJSON * const root) {
+void JSON_Print(const cJSON * const root) {
 	ESP_LOGI(TAG, "-----------------------------------------");
 	ESP_LOGD(TAG, "root->type=%s", JSON_Types(root->type));
 	if (cJSON_IsArray(root)) {
@@ -255,18 +264,18 @@ esp_err_t sqlite3_client_get(char * path)
 	ESP_LOGI(TAG, "sqlite3_client_get path=%s",path);
 	char local_response_buffer[MAX_HTTP_OUTPUT_BUFFER] = {0};
 	char url[64];
-	sprintf(url, "http://%s:%s/", EXAMPLE_ESP_WEB_SERVER_IP, EXAMPLE_ESP_WEB_SERVER_PORT);
+	sprintf(url, "http://%s:%d/", CONFIG_ESP_WEB_SERVER, CONFIG_ESP_WEB_SERVER_PORT);
 	if (strlen(path) > 0) {
 		int url_length = strlen(url);
 		if (url[url_length-1] != '/') strcat(url,"/");
 		strcat(url, path);
 	}
-	ESP_LOGI(TAG, "url=%s",url);
+	ESP_LOGI(TAG, "url=[%s]",url);
 	
 	esp_http_client_config_t config = {
 		.url = url,
 		.event_handler = _http_event_handler,
-		.user_data = local_response_buffer,		   // Pass address of local buffer to get response
+		.user_data = local_response_buffer, // Pass address of local buffer to get response
 	};
 	esp_http_client_handle_t client = esp_http_client_init(&config);
 
@@ -274,17 +283,16 @@ esp_err_t sqlite3_client_get(char * path)
 	esp_err_t ret;
 	esp_err_t err = esp_http_client_perform(client);
 	if (err == ESP_OK) {
-		ESP_LOGD(TAG, "HTTP GET Status = %d, content_length = %d",
+		ESP_LOGI(TAG, "HTTP GET Status = %d, content_length = %d",
 				esp_http_client_get_status_code(client),
 				esp_http_client_get_content_length(client));
-		ESP_LOGD(TAG, "local_response_buffer=%d",  strlen(local_response_buffer));
-		//ESP_LOG_BUFFER_HEX(TAG, local_response_buffer, strlen(local_response_buffer));
-		ESP_LOGI(TAG, "%s",  local_response_buffer);
+		ESP_LOGD(TAG, "local_response_buffer=%d", strlen(local_response_buffer));
+		ESP_LOGD(TAG, "%s", local_response_buffer);
 
 #if CONFIG_JSON_PARSE
 		ESP_LOGI(TAG, "Deserialize.....");
 		cJSON *root = cJSON_Parse(local_response_buffer);
-		JSON_Parse(root);
+		JSON_Print(root);
 		cJSON_Delete(root);
 #endif
 		ret = ESP_OK;
@@ -301,18 +309,18 @@ esp_err_t sqlite3_client_post(char * path, char * name, int gender)
 	ESP_LOGI(TAG, "sqlite3_client_post path=%s",path);
 	char local_response_buffer[MAX_HTTP_OUTPUT_BUFFER] = {0};
 	char url[64];
-	sprintf(url, "http://%s:%s/", EXAMPLE_ESP_WEB_SERVER_IP, EXAMPLE_ESP_WEB_SERVER_PORT);
+	sprintf(url, "http://%s:%d/", CONFIG_ESP_WEB_SERVER, CONFIG_ESP_WEB_SERVER_PORT);
 	if (strlen(path) > 0) {
 		int url_length = strlen(url);
 		if (url[url_length-1] != '/') strcat(url,"/");
 		strcat(url, path);
 	}
-	ESP_LOGI(TAG, "url=%s",url);
+	ESP_LOGI(TAG, "url=[%s]",url);
 	
 	esp_http_client_config_t config = {
 		.url = url,
 		.event_handler = _http_event_handler,
-		.user_data = local_response_buffer,		   // Pass address of local buffer to get response
+		.user_data = local_response_buffer, // Pass address of local buffer to get response
 	};
 	esp_http_client_handle_t client = esp_http_client_init(&config);
 
@@ -329,9 +337,8 @@ esp_err_t sqlite3_client_post(char * path, char * name, int gender)
 		ESP_LOGD(TAG, "HTTP GET Status = %d, content_length = %d",
 				esp_http_client_get_status_code(client),
 				esp_http_client_get_content_length(client));
-		ESP_LOGD(TAG, "local_response_buffer=%d",  strlen(local_response_buffer));
-		//ESP_LOG_BUFFER_HEX(TAG, local_response_buffer, strlen(local_response_buffer));
-		ESP_LOGI(TAG, "%s",  local_response_buffer);
+		ESP_LOGD(TAG, "local_response_buffer=%d", strlen(local_response_buffer));
+		ESP_LOGD(TAG, "%s", local_response_buffer);
 		ret = ESP_OK;
 		
 	} else {
@@ -346,18 +353,18 @@ esp_err_t sqlite3_client_put(char * path, char * name, int gender)
 	ESP_LOGI(TAG, "sqlite3_client_put path=%s",path);
 	char local_response_buffer[MAX_HTTP_OUTPUT_BUFFER] = {0};
 	char url[64];
-	sprintf(url, "http://%s:%s/", EXAMPLE_ESP_WEB_SERVER_IP, EXAMPLE_ESP_WEB_SERVER_PORT);
+	sprintf(url, "http://%s:%d/", CONFIG_ESP_WEB_SERVER, CONFIG_ESP_WEB_SERVER_PORT);
 	if (strlen(path) > 0) {
 		int url_length = strlen(url);
 		if (url[url_length-1] != '/') strcat(url,"/");
 		strcat(url, path);
 	}
-	ESP_LOGI(TAG, "url=%s",url);
+	ESP_LOGI(TAG, "url=[%s]",url);
 
 	esp_http_client_config_t config = {
 		.url = url,
 		.event_handler = _http_event_handler,
-		.user_data = local_response_buffer,		   // Pass address of local buffer to get response
+		.user_data = local_response_buffer, // Pass address of local buffer to get response
 	};
 	esp_http_client_handle_t client = esp_http_client_init(&config);
 
@@ -374,9 +381,8 @@ esp_err_t sqlite3_client_put(char * path, char * name, int gender)
 		ESP_LOGD(TAG, "HTTP GET Status = %d, content_length = %d",
 				esp_http_client_get_status_code(client),
 				esp_http_client_get_content_length(client));
-		ESP_LOGD(TAG, "local_response_buffer=%d",  strlen(local_response_buffer));
-		//ESP_LOG_BUFFER_HEX(TAG, local_response_buffer, strlen(local_response_buffer));
-		ESP_LOGI(TAG, "%s",  local_response_buffer);
+		ESP_LOGD(TAG, "local_response_buffer=%d", strlen(local_response_buffer));
+		ESP_LOGD(TAG, "%s", local_response_buffer);
 		ret = ESP_OK;
 	} else {
 		ESP_LOGE(TAG, "HTTP PUT request failed: %s", esp_err_to_name(err));
@@ -391,18 +397,18 @@ esp_err_t sqlite3_client_delete(char * path)
 	ESP_LOGI(TAG, "sqlite3_client_delete path=%s",path);
 	char local_response_buffer[MAX_HTTP_OUTPUT_BUFFER] = {0};
 	char url[64];
-	sprintf(url, "http://%s:%s/", EXAMPLE_ESP_WEB_SERVER_IP, EXAMPLE_ESP_WEB_SERVER_PORT);
+	sprintf(url, "http://%s:%d/", CONFIG_ESP_WEB_SERVER, CONFIG_ESP_WEB_SERVER_PORT);
 	if (strlen(path) > 0) {
 		int url_length = strlen(url);
 		if (url[url_length-1] != '/') strcat(url,"/");
 		strcat(url, path);
 	}
-	ESP_LOGI(TAG, "url=%s",url);
+	ESP_LOGI(TAG, "url=[%s]",url);
 
 	esp_http_client_config_t config = {
 		.url = url,
 		.event_handler = _http_event_handler,
-		.user_data = local_response_buffer,		   // Pass address of local buffer to get response
+		.user_data = local_response_buffer, // Pass address of local buffer to get response
 	};
 	esp_http_client_handle_t client = esp_http_client_init(&config);
 
@@ -415,9 +421,8 @@ esp_err_t sqlite3_client_delete(char * path)
 		ESP_LOGD(TAG, "HTTP GET Status = %d, content_length = %d",
 				esp_http_client_get_status_code(client),
 				esp_http_client_get_content_length(client));
-		ESP_LOGD(TAG, "local_response_buffer=%d",  strlen(local_response_buffer));
-		//ESP_LOG_BUFFER_HEX(TAG, local_response_buffer, strlen(local_response_buffer));
-		ESP_LOGI(TAG, "%s",  local_response_buffer);
+		ESP_LOGD(TAG, "local_response_buffer=%d", strlen(local_response_buffer));
+		ESP_LOGD(TAG, "%s", local_response_buffer);
 		ret = ESP_OK;
 	} else {
 		ESP_LOGE(TAG, "HTTP DELETE request failed: %s", esp_err_to_name(err));
@@ -431,8 +436,9 @@ int sqlite3_client_maxid(char * path)
 {
 	ESP_LOGI(TAG, "sqlite3_client_maxid path=%s",path);
 	char local_response_buffer[MAX_HTTP_OUTPUT_BUFFER] = {0};
+#if 0
 	char url[64];
-	sprintf(url, "http://%s:%s/", EXAMPLE_ESP_WEB_SERVER_IP, EXAMPLE_ESP_WEB_SERVER_PORT);
+	sprintf(url, "http://%s:%d/", CONFIG_ESP_WEB_SERVER, CONFIG_ESP_WEB_SERVER_PORT);
 	if (strlen(path) > 0) {
 		int url_length = strlen(url);
 		if (url[url_length-1] != '/') strcat(url,"/");
@@ -440,13 +446,36 @@ int sqlite3_client_maxid(char * path)
 	}
 	// SELECT * FROM "customers" ORDER BY "id" desc LIMIT 1;
 	strcat(url, "?limit=1&by=id&order=desc");
-	ESP_LOGI(TAG, "url=%s",url);
+	ESP_LOGI(TAG, "url=[%s]",url);
 
 	esp_http_client_config_t config = {
 		.url = url,
 		.event_handler = _http_event_handler,
-		.user_data = local_response_buffer,		   // Pass address of local buffer to get response
+		.user_data = local_response_buffer,	// Pass address of local buffer to get response
 	};
+
+#if 0
+	esp_http_client_config_t config = {
+		.url = "http://lenovo-s500.local:8080/customers/?limit=1&by=id&order=desc",
+		.event_handler = _http_event_handler,
+		.user_data = local_response_buffer,	// Pass address of local buffer to get response
+	};
+#endif
+#endif
+
+#if 1
+	char _path[64];
+	sprintf(_path, "/%slimit=1&by=id&order=desc", path);
+	ESP_LOGI(TAG, "_path=[%s]", _path);
+	esp_http_client_config_t config = {
+		.host = CONFIG_ESP_WEB_SERVER,
+		.port = CONFIG_ESP_WEB_SERVER_PORT,
+		//.path = "/customers/?limit=1&by=id&order=desc",
+		.path = _path,
+		.event_handler = _http_event_handler,
+		.user_data = local_response_buffer,	// Pass address of local buffer to get response
+	};
+#endif
 	esp_http_client_handle_t client = esp_http_client_init(&config);
 
 	// GET
@@ -456,8 +485,8 @@ int sqlite3_client_maxid(char * path)
 		ESP_LOGD(TAG, "HTTP GET Status = %d, content_length = %d",
 				esp_http_client_get_status_code(client),
 				esp_http_client_get_content_length(client));
-		ESP_LOGD(TAG, "local_response_buffer=%d",  strlen(local_response_buffer));
-		ESP_LOGD(TAG, "%s",  local_response_buffer);
+		ESP_LOGD(TAG, "local_response_buffer=%d", strlen(local_response_buffer));
+		ESP_LOGD(TAG, "%s", local_response_buffer);
 
 		ESP_LOGD(TAG, "Deserialize.....");
 		cJSON *root = cJSON_Parse(local_response_buffer);
@@ -565,8 +594,8 @@ void app_main()
 	//Initialize NVS
 	esp_err_t ret = nvs_flash_init();
 	if (ret == ESP_ERR_NVS_NO_FREE_PAGES || ret == ESP_ERR_NVS_NEW_VERSION_FOUND) {
-	  ESP_ERROR_CHECK(nvs_flash_erase());
-	  ret = nvs_flash_init();
+		ESP_ERROR_CHECK(nvs_flash_erase());
+		ret = nvs_flash_init();
 	}
 	ESP_ERROR_CHECK(ret);
 

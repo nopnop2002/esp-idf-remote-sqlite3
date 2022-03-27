@@ -18,22 +18,22 @@ menu "Application Configuration"
 		help
 			Set the Maximum retry to avoid station reconnecting to the AP unlimited when the AP is really inexistent.
 
-	config ESP_WEB_SERVER_IP
-		string "IP address of WEB server"
-		default "192.168.10.43"
+	config ESP_WEB_SERVER
+		string "HTTP Server IP or mDNS"
+		default "httpserver.local"
 		help
-			IP address of your WEB server.
+			HTTP Server IP or mDNS.
 
 	config ESP_WEB_SERVER_PORT
-		string "Port number of WEB serve"
-		default "8080"
+		int "HTTP server Port"
+		default 8080
 		help
-			Port number of your WEB server.
+			HTTP server port to use.
 
 	config JSON_PARSE
-		bool "Enable JSON parse"
-		default false
+		bool "Enable JSON Print to STDOUT"
+		default y
 		help
-			Enable JSON parse.
+			Enable JSON Print to STDOUT.
 
 endmenu
