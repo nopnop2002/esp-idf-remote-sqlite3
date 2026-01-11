@@ -68,9 +68,9 @@ Set the full path of the database in the following line.
 
 $dsn = '';
 
-For example, if the database is /home/nop/esp-idf-remote-sqlite3/sqlite/example.db, it will be as follows.
+For example, if the database is /home/sqlite/example.db, it will be as follows.
 
-$dsn = 'sqlite:///home/nop/esp-idf-remote-sqlite3/sqlite/example.db';
+$dsn = 'sqlite:///home/sqlite/example.db';
 
 ```
 
@@ -80,30 +80,28 @@ $ cd $HOME
 $ sudo apt install php
 
 $ php --version
-PHP 7.2.24-0ubuntu0.18.04.1 (cli) (built: Oct 28 2019 12:07:07) ( NTS )
-Copyright (c) 1997-2018 The PHP Group
-Zend Engine v3.2.0, Copyright (c) 1998-2018 Zend Technologies
-    with Zend OPcache v7.2.24-0ubuntu0.18.04.1, Copyright (c) 1999-2018, by Zend Technologies
+$ php --version
+PHP 8.2.29 (cli) (built: Jul  3 2025 16:16:05) (NTS)
+Copyright (c) The PHP Group
+Zend Engine v4.2.29, Copyright (c) Zend Technologies
+    with Zend OPcache v8.2.29, Copyright (c), by Zend Technologies
 ```
 
 ## Install PDO driver for Sqlite3
 ```
-$ sudo apt-get install php[Version]-sqlite3
+$ sudo apt install php[Version]-sqlite3
 ```
 
-When the PHP version is 7.2.x, execute the following.   
+When the PHP version is 8.2.x, execute the following.   
 ```
-$ sudo apt-get install php7.2-sqlite3
+$ sudo apt install php8.2-sqlite3
 ```
 
 
-## Start Built-in WEB Server
+## Start the PHP built-in web server
 ```
 $ php -S 0.0.0.0:8080 -t $HOME/ArrestDB
-PHP 7.2.24-0ubuntu0.18.04.7 Development Server started at Sat Oct 31 18:00:29 2020
-Listening on http://0.0.0.0:8080
-Document root is /home/nop/ArrestDB
-Press Ctrl-C to quit.
+[Sun Jan 11 14:13:15 2026] PHP 8.2.29 Development Server (http://0.0.0.0:8080) started
 ```
 
 
@@ -139,11 +137,11 @@ $ curl "http://localhost:8080/customers/"
 # ESP32 Side
 
 
-## Software requirements
-esp-idf ver4.1 or later.   
+# Software requirements
+ESP-IDF V5.0 or later.   
+ESP-IDF V4.4 release branch reached EOL in July 2024.   
 
 ## Install
-
 ```
 git clone https://github.com/nopnop2002/esp-idf-remote-sqlite3
 cd esp-idf-remote-sqlite3/
