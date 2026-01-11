@@ -157,7 +157,7 @@ PASSWORD of your wifi.
 - CONFIG_ESP_MAXIMUM_RETRY   
 Maximum number of retries when connecting to wifi.
 - CONFIG_ESP_WEB_SERVER_IP   
-IP or DNS of your WEB Server.
+IP or mDNS host name of your WEB Server.
 - CONFIG_ESP_WEB_SERVER_PORT   
 Port number of your WEB Server.
 
