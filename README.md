@@ -80,7 +80,6 @@ $ cd $HOME
 $ sudo apt install php
 
 $ php --version
-$ php --version
 PHP 8.2.29 (cli) (built: Jul  3 2025 16:16:05) (NTS)
 Copyright (c) The PHP Group
 Zend Engine v4.2.29, Copyright (c) Zend Technologies
@@ -88,6 +87,7 @@ Zend Engine v4.2.29, Copyright (c) Zend Technologies
 ```
 
 ## Install PDO driver for Sqlite3
+The PDO driver for Sqlite3 requires different modules to be installed depending on the version of PHP you are using.   
 ```
 $ sudo apt install php[Version]-sqlite3
 ```
